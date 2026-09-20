@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lexical Analyzer Dashboard - Live Tokenization Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="32" height="32" rx="8" fill="url(#logoGrad)"/>
+                        <path d="M8 12L16 8L24 12V20L16 24L8 20V12Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M12 16H20" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M12 12V12.01" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M20 12V12.01" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#6366f1"/>
+                                <stop offset="100%" stop-color="#ec4899"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <span class="logo-text">Lexical Analyzer</span>
+                </div>
+                <span class="badge">LEX + Web Dashboard</span>
+            </div>
+            <div class="header-center">
+                <div class="status-indicator" id="statusIndicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Ready</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-ghost" id="themeToggle" aria-label="Toggle theme">
+                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+                <div class="speed-control">
+                    <label for="speedSlider">Speed</label>
+                    <input type="range" id="speedSlider" min="1" max="10" value="5">
+                    <span id="speedValue">5x</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Left Panel: Source Code Editor -->
+            <section class="panel panel-code">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                        Source Code
+                    </h2>
+                    <div class="panel-actions">
+                        <button class="btn btn-sm btn-primary" id="loadSampleBtn">Load Sample</button>
+                        <button class="btn btn-sm btn-secondary" id="clearBtn">Clear</button>
+                    </div>
+                </div>
+                <div class="editor-container">
+                    <div class="line-numbers" id="lineNumbers"></div>
+                    <textarea
+                        class="code-editor"
+                        id="codeEditor"
+                        spellcheck="false"
+                        placeholder="// Enter your code here...\n// Try:\n// int main() {\n//     int x = 42;\n//     float y = 3.14;\n//     if (x > 10) {\n//         return x * 2;\n//     }\n//     return 0;\n// }"
+                    ></textarea>
+                    <div class="editor-overlay" id="editorOverlay"></div>
+                </div>
+                <div class="editor-footer">
+                    <span class="cursor-position" id="cursorPosition">Ln 1, Col 1</span>
+                    <span class="char-count" id="charCount">0 characters</span>
+                </div>
+            </section>
+
+            <!-- Center Panel: Token Stream Animation -->
+            <section class="panel panel-token-stream">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                        Token Stream Visualization
+                    </h2>
+                    <div class="panel-actions">
+                        <button class="btn btn-sm btn-primary" id="analyzeBtn" disabled>
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                            <span>Analyze</span>
+                        </button>
+                        <button class="btn btn-sm btn-secondary" id="pauseBtn" disabled>
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="6" y="4" width="4" height="16"/>
+                                <rect x="14" y="4" width="4" height="16"/>
+                            </svg>
+                            <span>Pause</span>
+                        </button>
+                        <button class="btn btn-sm btn-ghost" id="stepBtn" disabled>Step</button>
+                        <button class="btn btn-sm btn-ghost" id="resetBtn" disabled>Reset</button>
+                    </div>
+                </div>
+                <div class="token-stream-container">
+                    <!-- Source code view with highlighting -->
+                    <div class="source-view" id="sourceView">
+                        <div class="source-line-numbers" id="sourceLineNumbers"></div>
+                        <pre class="source-code" id="sourceCode"></pre>
+                    </div>
+
+                    <!-- Token flow animation -->
+                    <div class="token-flow" id="tokenFlow">
+                        <div class="flow-label">Token Flow</div>
+                        <div class="flow-track" id="flowTrack">
+                            <div class="flow-items" id="flowItems"></div>
+                        </div>
+                        <div class="flow-legend" id="flowLegend"></div>
+                    </div>
+
+                    <!-- Current token detail -->
+                    <div class="token-detail" id="tokenDetail">
+                        <div class="detail-header">Current Token Analysis</div>
+                        <div class="detail-content" id="detailContent">
+                            <div class="detail-placeholder">Click "Analyze" to start tokenization</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Token Table & Statistics -->
+            <section class="panel panel-results">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10"/>
+                            <line x1="12" y1="20" x2="12" y2="4"/>
+                            <line x1="6" y1="20" x2="6" y2="14"/>
+                        </svg>
+                        Tokens & Statistics
+                    </h2>
+                    <div class="panel-actions">
+                        <select class="select" id="filterSelect">
+                            <option value="all">All Tokens</option>
+                            <option value="keyword">Keywords</option>
+                            <option value="identifier">Identifiers</option>
+                            <option value="number">Numbers</option>
+                            <option value="operator">Operators</option>
+                            <option value="punctuation">Punctuation</option>
+                            <option value="string">Strings</option>
+                        </select>
+                        <button class="btn btn-sm btn-ghost" id="exportBtn" disabled>
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Export
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-icon keyword">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                <path d="M2 17l10 5 10-5"/>
+                                <path d="M2 12l10 5 10-5"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statKeywords">0</span>
+                            <span class="stat-label">Keywords</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon identifier">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statIdentifiers">0</span>
+                            <span class="stat-label">Identifiers</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon number">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                                <path d="M8 21h8"/>
+                                <path d="M12 17v4"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statNumbers">0</span>
+                            <span class="stat-label">Numbers</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon operator">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statOperators">0</span>
+                            <span class="stat-label">Operators</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon punctuation">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 8v4M12 16h.01"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statPunctuation">0</span>
+                            <span class="stat-label">Punctuation</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon string">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 4h16v4a2 2 0 0 1-2 2h-3"/>
+                                <path d="M18 20H8a2 2 0 0 1-2-2v-4"/>
+                                <path d="M6 4v16"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statStrings">0</span>
+                            <span class="stat-label">Strings</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Token Table -->
+                <div class="token-table-container">
+                    <table class="token-table" id="tokenTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Token Type</th>
+                                <th>Lexeme</th>
+                                <th>Line</th>
+                                <th>Column</th>
+                                <th>Pattern</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tokenTableBody"></tbody>
+                    </table>
+                    <div class="table-empty" id="tableEmpty">No tokens yet. Enter code and click "Analyze".</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Panel: Regex Pattern Explorer -->
+        <section class="panel panel-patterns">
+            <div class="panel-header">
+                <h2 class="panel-title">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                    </svg>
+                    Lexical Patterns (Regex Rules)
+                </h2>
+            </div>
+            <div class="patterns-grid" id="patternsGrid"></div>
+        </section>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Modal for Export -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Export Tokens</h3>
+                <button class="modal-close" id="closeExportModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <label class="export-option">
+                        <input type="radio" name="exportFormat" value="json" checked>
+                        <span>JSON</span>
+                    </label>
+                    <label class="export-option">
+                        <input type="radio" name="exportFormat" value="csv">
+                        <span>CSV</span>
+                    </label>
+                    <label class="export-option">
+                        <input type="radio" name="exportFormat" value="txt">
+                        <span>Plain Text</span>
+                    </label>
+                </div>
+                <button class="btn btn-primary btn-full" id="confirmExport">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

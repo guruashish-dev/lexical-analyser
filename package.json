@@ -1,0 +1,24 @@
+{
+  "name": "lexical-analyzer-dashboard",
+  "version": "1.0.0",
+  "description": "Lexical Analyzer with animated web dashboard - LEX implementation with real-time tokenization visualization",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build:lexer": "flex -o src/lexer.c src/lexer.l && gcc -o bin/lexer src/lexer.c -lfl",
+    "test:lexer": "echo 'int main() { return 42; }' | ./bin/lexer"
+  },
+  "keywords": [
+    "lexer",
+    "lexical-analyzer",
+    "flex",
+    "compiler",
+    "tokenizer",
+    "dashboard",
+    "visualization"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {}
+}
